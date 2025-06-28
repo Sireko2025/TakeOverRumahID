@@ -1,0 +1,100 @@
+import { useState, useEffect } from "react";
+import Link from "next/link";
+
+interface Property {
+  id: string;
+  title: string;
+  type: string;
+  location: string;
+  price: number;
+  image: string;
+}
+
+export default function Listings() {
+  const [allProperties, setAllProperties] = useState<Property[]>([]);
+  const [filtered, setFiltered] = useState<Property[]>([]);
+  const [search, setSearch] = useState("");
+  const [type, setType] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+
+  useEffect(() => {
+    // Contoh data properti, nanti bisa diganti dari database
+    const mockData: Property[] = [
+      { id: "1", title: "Rumah Minimalis", type: "Rumah", location: "Bekasi", price: 400000000, image: "/rumah1.jpg" },
+      { id: "2", title: "Ruko Strategis", type: "Ruko", location: "Bogor", price: 700000000, image: "/ruko.jpg" },
+    ];
+    setAllProperties(mockData);
+    setFiltered(mockData);
+  }, []);
+
+  const handleFilter = () => {
+    let results = allProperties.filter((p) => {
+      const matchesSearch =
+        p.title.toLowerCase().includes(search.toLowerCase()) ||
+        p.location.toLowerCase().includes(search.toLowerCase());
+      const matchesType = type === "" || p.type === type;
+      const matchesMin = !minPrice || p.price >= parseInt(minPrice);
+      const matchesMax = !maxPrice || p.price <= parseInt(maxPrice);
+
+      return matchesSearch && matchesType && matchesMin && matchesMax;
+    });
+
+    setFiltered(results);
+  };
+
+  return (
+    <div className="p-4 max-w-5xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Semua Listing Properti</h1>
+
+      {/* FILTER */}
+      <div className="grid md:grid-cols-4 gap-4 mb-6">
+        <input
+          type="text"
+          placeholder="Cari lokasi / nama"
+          className="p-2 border rounded"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <select value={type} onChange={(e) => setType(e.target.value)} className="p-2 border rounded">
+          <option value="">Semua Tipe</option>
+          <option value="Rumah">Rumah</option>
+          <option value="Ruko">Ruko</option>
+          <option value="Apartemen">Apartemen</option>
+        </select>
+        <input
+          type="number"
+          placeholder="Harga Min"
+          className="p-2 border rounded"
+          value={minPrice}
+          onChange={(e) => setMinPrice(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Harga Max"
+          className="p-2 border rounded"
+          value={maxPrice}
+          onChange={(e) => setMaxPrice(e.target.value)}
+        />
+      </div>
+
+      <button className="bg-blue-600 text-white px-4 py-2 rounded mb-6" onClick={handleFilter}>
+        Terapkan Filter
+      </button>
+
+      {/* HASIL LISTING */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filtered.map((property) => (
+          <Link key={property.id} href={`/detail/${property.id}`}>
+            <div className="border rounded-xl shadow p-4 hover:shadow-lg transition cursor-pointer">
+              <img src={property.image} alt={property.title} className="w-full h-48 object-cover rounded" />
+              <h2 className="text-lg font-bold mt-2">{property.title}</h2>
+              <p className="text-sm text-gray-600">{property.location}</p>
+              <p className="text-blue-700 font-bold mt-1">Rp{property.price.toLocaleString()}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
